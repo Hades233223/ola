@@ -1,15 +1,16 @@
 const { Client, GatewayIntentBits, REST, Routes, SlashCommandBuilder, EmbedBuilder, ActionRowBuilder, ButtonBuilder, ButtonStyle, StringSelectMenuBuilder, ActivityType, AttachmentBuilder, PermissionFlagsBits, ChannelType, ModalBuilder, TextInputBuilder, TextInputStyle } = require('discord.js');
 const http = require('http');
 
-// Servidor para mantener vivo el bot en servicios como Koyeb
+// Servidor para mantener vivo el bot (Puerto 8080 para Render/Koyeb)
 http.createServer((req, res) => { res.write("ShowMC | Sistema Online"); res.end(); }).listen(8080);
 
-// --- CONFIGURACIÓN ACTUALIZADA ---
-const TOKEN = 'MTQ2MTU2MTQ3OTA0NzQxMzg1Mg.Grvnr1.xqGxUw5nLSG6nwHjOy38PEq6Pf-TZtSXJMAVEc'; 
+// --- CONFIGURACIÓN SEGURA ---
+// IMPORTANTE: Ya no ponemos el token aquí. El bot lo leerá de Render automáticamente.
+const TOKEN = process.env.TOKEN; 
 const CLIENT_ID = '1461561479047413852';
 const MI_ID = '1458973988234727495'; 
 
-// IDs Solicitados por el usuario
+// IDs de tu servidor
 const ROL_PERMITIDO_1 = '1460923684347707542'; 
 const ROL_PERMITIDO_2 = '1460923685727633454'; 
 const CAT_TICKETS = '1461555248261894165'; 
@@ -20,6 +21,7 @@ const client = new Client({
     intents: [GatewayIntentBits.Guilds, GatewayIntentBits.GuildMembers, GatewayIntentBits.GuildMessages, GatewayIntentBits.MessageContent]
 });
 
+// Comandos Slash
 const commands = [
     new SlashCommandBuilder().setName('setup-tickets').setDescription('🛠️ Desplegar panel de soporte ShowMC'),
     new SlashCommandBuilder()
@@ -32,20 +34,19 @@ client.once('ready', async () => {
     try {
         const rest = new REST({ version: '10' }).setToken(TOKEN);
         await rest.put(Routes.applicationCommands(CLIENT_ID), { body: commands });
-        client.user.setActivity('ShowMC en processing...🎮', { type: ActivityType.Playing });
+        client.user.setActivity('ShowMC Online 🎮', { type: ActivityType.Playing });
         console.log("✅ ShowMC Bot Online");
-    } catch (e) { console.error(e); }
+    } catch (e) { console.error("Error al iniciar:", e); }
 });
 
 client.on('interactionCreate', async interaction => {
-    // Verificación de Rangos Específicos
     const esStaff = interaction.user.id === MI_ID || 
                     interaction.member?.roles.cache.has(ROL_PERMITIDO_1) || 
                     interaction.member?.roles.cache.has(ROL_PERMITIDO_2);
 
     if (interaction.isChatInputCommand()) {
         if (interaction.commandName === 'setup-tickets') {
-            if (!esStaff) return interaction.reply({ content: '❌ No tienes los rangos necesarios para usar este comando.', ephemeral: true });
+            if (!esStaff) return interaction.reply({ content: '❌ No tienes permiso.', ephemeral: true });
 
             const embed = new EmbedBuilder()
                 .setAuthor({ name: 'Centro de Asistencia ShowMC', iconURL: interaction.guild.iconURL() })
@@ -53,7 +54,7 @@ client.on('interactionCreate', async interaction => {
                 .setDescription('Bienvenido al soporte oficial. Selecciona la categoría adecuada.\n\n**Categorías:**\n❓ **Dudas:** Consultas generales.\n🛒 **Compras:** Problemas con la tienda.\n🚫 **Reportes:** Errores o jugadores.\n🤝 **Postulaciones:** Formar parte del equipo.\n🎥 **Media Team:** Rango Media.')
                 .setColor(0x2b2d31)
                 .setImage(IMAGEN_EMBED) 
-                .setFooter({ text: 'ShowMC • Responderemos lo antes posible', iconURL: interaction.guild.iconURL() })
+                .setFooter({ text: 'ShowMC • Responderemos lo antes posible' })
                 .setTimestamp();
 
             const menu = new ActionRowBuilder().addComponents(
@@ -67,7 +68,7 @@ client.on('interactionCreate', async interaction => {
             );
 
             await interaction.channel.send({ embeds: [embed], components: [menu] });
-            return interaction.reply({ content: '✅ Panel configurado correctamente.', ephemeral: true });
+            return interaction.reply({ content: '✅ Panel configurado.', ephemeral: true });
         }
 
         if (interaction.commandName === 'limpiar') {
