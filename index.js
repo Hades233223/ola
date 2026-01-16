@@ -16,17 +16,38 @@ const CAT_TICKETS = '1461555248261894165';
 const CANAL_LOGS = '1461555290406125855'; 
 const IMAGEN_EMBED = 'https://media.discordapp.net/attachments/1461484900636164212/1461563409513316476/unnamed.jpg?ex=696b027f&is=6969b0ff&hm=c3d4e5bdd3b430b4824cd932691b21f241c1d5e31634fe6909e9d0b749ebe81b&=&format=webp';
 
+// --- NUEVOS AJUSTES (Bienvenida y Verificación) ---
+const CANAL_BIENVENIDA = '1460923924249448448'; 
+const ROL_USUARIO = '1460923687258558485'; // Pon aquí el ID del rol que se da al verificarse (ej: Miembro)
+
 const client = new Client({
     intents: [GatewayIntentBits.Guilds, GatewayIntentBits.GuildMembers, GatewayIntentBits.GuildMessages, GatewayIntentBits.MessageContent]
 });
 
 const commands = [
     new SlashCommandBuilder().setName('setup-tickets').setDescription('🛠️ Desplegar panel de soporte ShowMC'),
+    new SlashCommandBuilder().setName('setup-verificacion').setDescription('🛡️ Desplegar panel de verificación'),
     new SlashCommandBuilder()
         .setName('limpiar')
         .setDescription('🧹 Borrar mensajes')
         .addIntegerOption(o => o.setName('cantidad').setDescription('Número de mensajes').setRequired(true))
 ].map(c => c.toJSON());
+
+// --- SISTEMA DE BIENVENIDAS ---
+client.on('guildMemberAdd', async member => {
+    const canal = member.guild.channels.cache.get(CANAL_BIENVENIDA);
+    if (!canal) return;
+
+    const embedBienvenida = new EmbedBuilder()
+        .setTitle('👋 ¡Bienvenido a ShowMC Network!')
+        .setDescription(`Hola ${member}, gracias por unirte a nuestra comunidad.\n\n**Recuerda hacer lo siguiente:**\n🛡️ Verifícate en el canal correspondiente.\n📜 Lee las normas en <#1460923926900248577>.\n🎮 ¡Disfruta de tu estancia!`)
+        .setColor(0x00fbff)
+        .setThumbnail(member.user.displayAvatarURL())
+        .setFooter({ text: `Miembro #${member.guild.memberCount}`, iconURL: member.guild.iconURL() })
+        .setTimestamp();
+
+    canal.send({ content: `¡Bienvenido ${member}!`, embeds: [embedBienvenida] });
+});
 
 client.once('ready', async () => {
     try {
@@ -43,6 +64,24 @@ client.on('interactionCreate', async interaction => {
                     interaction.member?.roles.cache.has(ROL_PERMITIDO_2);
 
     if (interaction.isChatInputCommand()) {
+        // --- SETUP VERIFICACIÓN ---
+        if (interaction.commandName === 'setup-verificacion') {
+            if (!esStaff) return interaction.reply({ content: '❌ No tienes permiso.', ephemeral: true });
+
+            const embedVerif = new EmbedBuilder()
+                .setTitle('🛡️ Centro de Verificación')
+                .setDescription('Para acceder al resto del servidor y demostrar que no eres un bot, presiona el botón de abajo.')
+                .setColor(0x00fbff)
+                .setFooter({ text: 'ShowMC Network' });
+
+            const btnVerif = new ActionRowBuilder().addComponents(
+                new ButtonBuilder().setCustomId('verificar_usuario').setLabel('Verificarse').setStyle(ButtonStyle.Success).setEmoji('✅')
+            );
+
+            await interaction.channel.send({ embeds: [embedVerif], components: [btnVerif] });
+            return interaction.reply({ content: '✅ Panel de verificación enviado.', ephemeral: true });
+        }
+
         if (interaction.commandName === 'setup-tickets') {
             if (!esStaff) return interaction.reply({ content: '❌ No tienes permiso.', ephemeral: true });
 
@@ -97,6 +136,15 @@ client.on('interactionCreate', async interaction => {
             await interaction.channel.bulkDelete(cantidad > 100 ? 100 : cantidad, true);
             return interaction.reply({ content: `🧹 Borrados ${cantidad} mensajes.`, ephemeral: true });
         }
+    }
+
+    // --- MANEJO DE VERIFICACIÓN ---
+    if (interaction.customId === 'verificar_usuario') {
+        const rol = interaction.guild.roles.cache.get(ROL_USUARIO);
+        if (!rol) return interaction.reply({ content: '❌ Error: El rol de verificación no existe.', ephemeral: true });
+        
+        await interaction.member.roles.add(rol);
+        return interaction.reply({ content: '✅ Te has verificado correctamente. ¡Bienvenido!', ephemeral: true });
     }
 
     // --- MANEJO DE TICKETS ---
