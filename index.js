@@ -1,16 +1,15 @@
 const { Client, GatewayIntentBits, REST, Routes, SlashCommandBuilder, EmbedBuilder, ActionRowBuilder, ButtonBuilder, ButtonStyle, StringSelectMenuBuilder, ActivityType, AttachmentBuilder, PermissionFlagsBits, ChannelType, ModalBuilder, TextInputBuilder, TextInputStyle } = require('discord.js');
 const http = require('http');
 
-// Servidor para mantener vivo el bot (Puerto 8080 para Render/Koyeb)
+// Servidor para Render / Puerto 8080
 http.createServer((req, res) => { res.write("ShowMC | Sistema Online"); res.end(); }).listen(8080);
 
 // --- CONFIGURACIÓN SEGURA ---
-// IMPORTANTE: Ya no ponemos el token aquí. El bot lo leerá de Render automáticamente.
 const TOKEN = process.env.TOKEN; 
 const CLIENT_ID = '1461561479047413852';
 const MI_ID = '1458973988234727495'; 
 
-// IDs de tu servidor
+// IDs del Servidor ShowMC
 const ROL_PERMITIDO_1 = '1460923684347707542'; 
 const ROL_PERMITIDO_2 = '1460923685727633454'; 
 const CAT_TICKETS = '1461555248261894165'; 
@@ -21,7 +20,6 @@ const client = new Client({
     intents: [GatewayIntentBits.Guilds, GatewayIntentBits.GuildMembers, GatewayIntentBits.GuildMessages, GatewayIntentBits.MessageContent]
 });
 
-// Comandos Slash
 const commands = [
     new SlashCommandBuilder().setName('setup-tickets').setDescription('🛠️ Desplegar panel de soporte ShowMC'),
     new SlashCommandBuilder()
@@ -34,9 +32,9 @@ client.once('ready', async () => {
     try {
         const rest = new REST({ version: '10' }).setToken(TOKEN);
         await rest.put(Routes.applicationCommands(CLIENT_ID), { body: commands });
-        client.user.setActivity('ShowMC Online 🎮', { type: ActivityType.Playing });
+        client.user.setActivity('ShowMC Network | 2026', { type: ActivityType.Watching });
         console.log("✅ ShowMC Bot Online");
-    } catch (e) { console.error("Error al iniciar:", e); }
+    } catch (e) { console.error(e); }
 });
 
 client.on('interactionCreate', async interaction => {
@@ -49,26 +47,48 @@ client.on('interactionCreate', async interaction => {
             if (!esStaff) return interaction.reply({ content: '❌ No tienes permiso.', ephemeral: true });
 
             const embed = new EmbedBuilder()
-                .setAuthor({ name: 'Centro de Asistencia ShowMC', iconURL: interaction.guild.iconURL() })
-                .setTitle('📩 SISTEMA DE SOPORTE INTEGRAL')
-                .setDescription('Bienvenido al soporte oficial. Selecciona la categoría adecuada.\n\n**Categorías:**\n❓ **Dudas:** Consultas generales.\n🛒 **Compras:** Problemas con la tienda.\n🚫 **Reportes:** Errores o jugadores.\n🤝 **Postulaciones:** Formar parte del equipo.\n🎥 **Media Team:** Rango Media.')
-                .setColor(0x2b2d31)
-                .setImage(IMAGEN_EMBED) 
-                .setFooter({ text: 'ShowMC • Responderemos lo antes posible' })
+                .setAuthor({ name: 'ShowMC Network', iconURL: interaction.guild.iconURL() })
+                .setTitle('Soporte | Sistema de Ticket')
+                .setDescription(
+                    'Para comenzar una nueva solicitud de soporte, debes darle click al menú interactivo que aparece en la parte inferior y elegir la categoría correcta; de lo contrario, no recibirás soporte.\n\n' +
+                    '**・ Categorías Disponibles:**\n' +
+                    '> ❓ Soporte / Dudas\n' +
+                    '> 🛒 Tienda / Compras\n' +
+                    '> 👤 Unregister / Cuenta\n' +
+                    '> ⚖️ Apelaciones\n' +
+                    '> 🎥 Media Team\n' +
+                    '> 🚫 Reportes Jugadores\n' +
+                    '> 👮 Reportes Staff\n' +
+                    '> 🔄 Revives / Rewards Boost\n\n' +
+                    '**・ Información Importante:**\n' +
+                    '| Abusar de nuestro sistema de tickets conllevará a sanciones no apelables.\n' +
+                    '| Al abrir un ticket, ten siempre pruebas a mano (fotos/vídeos).\n' +
+                    '| Los tickets inactivos por 4 horas se cerrarán automáticamente.\n\n' +
+                    '**Antes de preguntar, revisa nuestras normas aquí:**\n<#1460923926900248577>'
+                )
+                .setColor(0x00fbff)
+                .setImage(IMAGEN_EMBED)
+                .setFooter({ text: 'ShowMC Network | Soporte 2026', iconURL: interaction.guild.iconURL() })
                 .setTimestamp();
 
             const menu = new ActionRowBuilder().addComponents(
-                new StringSelectMenuBuilder().setCustomId('menu_showmc').setPlaceholder('💎 Selecciona una categoría aquí').addOptions([
-                    { label: 'Dudas / Problemas', value: 'soporte', emoji: '❓' },
-                    { label: 'Compras / Tienda', value: 'compras', emoji: '🛒' },
-                    { label: 'Reportes / Bugs', value: 'reportes', emoji: '🚫' },
-                    { label: 'Postulaciones Staff', value: 'staff', emoji: '🤝' },
-                    { label: 'Media Team', value: 'mediateam', emoji: '🎥' }
-                ])
+                new StringSelectMenuBuilder()
+                    .setCustomId('menu_showmc')
+                    .setPlaceholder('💎 Selecciona una categoría aquí')
+                    .addOptions([
+                        { label: 'Soporte General', value: 'soporte', emoji: '❓' },
+                        { label: 'Tienda', value: 'tienda', emoji: '🛒' },
+                        { label: 'Unregister', value: 'unregister', emoji: '👤' },
+                        { label: 'Apelaciones', value: 'apelaciones', emoji: '⚖️' },
+                        { label: 'Media Team', value: 'mediateam', emoji: '🎥' },
+                        { label: 'Reportes Jugadores', value: 'reportes_jugadores', emoji: '🚫' },
+                        { label: 'Reportes Staff', value: 'reportes_staff', emoji: '👮' },
+                        { label: 'Revives / Rewards', value: 'revives', emoji: '🔄' }
+                    ])
             );
 
             await interaction.channel.send({ embeds: [embed], components: [menu] });
-            return interaction.reply({ content: '✅ Panel configurado.', ephemeral: true });
+            return interaction.reply({ content: '✅ Panel enviado correctamente.', ephemeral: true });
         }
 
         if (interaction.commandName === 'limpiar') {
@@ -79,10 +99,11 @@ client.on('interactionCreate', async interaction => {
         }
     }
 
+    // --- MANEJO DE TICKETS ---
     if (interaction.isStringSelectMenu() && interaction.customId === 'menu_showmc') {
         const opcion = interaction.values[0];
-        const modal = new ModalBuilder().setCustomId(`modal_${opcion}`).setTitle(`Soporte: ${opcion.toUpperCase()}`);
-        const input = new TextInputBuilder().setCustomId('razon').setLabel('Explica tu caso detalladamente:').setStyle(TextInputStyle.Paragraph).setRequired(true);
+        const modal = new ModalBuilder().setCustomId(`modal_${opcion}`).setTitle(`Ticket: ${opcion.replace('_', ' ').toUpperCase()}`);
+        const input = new TextInputBuilder().setCustomId('razon').setLabel('Describe tu situación/pruebas:').setStyle(TextInputStyle.Paragraph).setRequired(true).setPlaceholder('Escribe aquí...');
         modal.addComponents(new ActionRowBuilder().addComponents(input));
         await interaction.showModal(modal);
     }
@@ -104,22 +125,23 @@ client.on('interactionCreate', async interaction => {
         });
 
         const embedTicket = new EmbedBuilder()
-            .setTitle(`✨ TICKET DE ${tipo.toUpperCase()}`)
-            .setDescription(`Hola ${interaction.user}, el staff te atenderá pronto.\n\n**Razón:**\n\`\`\`${razon}\`\`\``)
-            .setColor(0x00ff88);
+            .setTitle(`✨ TICKET: ${tipo.toUpperCase()}`)
+            .setDescription(`Hola ${interaction.user}, bienvenido al soporte de **ShowMC**.\nUn miembro del equipo te atenderá pronto.\n\n**Información proporcionada:**\n\`\`\`${razon}\`\`\``)
+            .setColor(0x00fbff)
+            .setFooter({ text: 'ShowMC Network' });
 
         const btns = new ActionRowBuilder().addComponents(
-            new ButtonBuilder().setCustomId('tomar_ticket').setLabel('Tomar Ticket').setStyle(ButtonStyle.Primary),
-            new ButtonBuilder().setCustomId('cerrar_ticket').setLabel('Cerrar Ticket').setStyle(ButtonStyle.Danger)
+            new ButtonBuilder().setCustomId('tomar_ticket').setLabel('Tomar Ticket').setStyle(ButtonStyle.Success).setEmoji('🙋‍♂️'),
+            new ButtonBuilder().setCustomId('cerrar_ticket').setLabel('Cerrar Ticket').setStyle(ButtonStyle.Danger).setEmoji('🔒')
         );
 
         await canal.send({ content: `${interaction.user} | <@&${ROL_PERMITIDO_1}> <@&${ROL_PERMITIDO_2}>`, embeds: [embedTicket], components: [btns] });
-        return interaction.reply({ content: `✅ Ticket creado en ${canal}`, ephemeral: true });
+        return interaction.reply({ content: `✅ Tu ticket ha sido creado: ${canal}`, ephemeral: true });
     }
 
     if (interaction.customId === 'tomar_ticket') {
-        if (!esStaff) return interaction.reply({ content: 'Solo el Staff puede tomar tickets.', ephemeral: true });
-        await interaction.channel.send({ content: `🙋‍♂️ El Staff **${interaction.user}** ha tomado este ticket.` });
+        if (!esStaff) return interaction.reply({ content: '❌ Solo el Staff puede tomar tickets.', ephemeral: true });
+        await interaction.channel.send({ content: `✅ El Staff **${interaction.user}** se encargará de este ticket.` });
         const rowMod = new ActionRowBuilder().addComponents(
             new ButtonBuilder().setCustomId('tomar_ticket').setLabel('En proceso...').setStyle(ButtonStyle.Secondary).setDisabled(true),
             new ButtonBuilder().setCustomId('cerrar_ticket').setLabel('Cerrar Ticket').setStyle(ButtonStyle.Danger)
@@ -128,21 +150,19 @@ client.on('interactionCreate', async interaction => {
     }
 
     if (interaction.customId === 'cerrar_ticket') {
-        if (!esStaff) return interaction.reply({ content: 'Solo el Staff puede cerrar tickets.', ephemeral: true });
+        if (!esStaff) return interaction.reply({ content: '❌ Solo el Staff puede cerrar tickets.', ephemeral: true });
         
-        await interaction.reply('Generando transcripción...');
+        await interaction.reply('Generando logs y cerrando...');
         const mensajes = await interaction.channel.messages.fetch({ limit: 100 });
-        let log = `TRANSCRIPCIÓN SHOWMC - ${interaction.channel.name.toUpperCase()}\n------------------------------------------\n`;
-        mensajes.reverse().forEach(m => {
-            log += `[${m.createdAt.toLocaleString()}] ${m.author.tag}: ${m.content}\n`;
-        });
+        let logText = `LOG TICKET SHOWMC - ${interaction.channel.name}\n\n`;
+        mensajes.reverse().forEach(m => { logText += `[${m.createdAt.toLocaleString()}] ${m.author.tag}: ${m.content}\n`; });
 
-        const attachment = new AttachmentBuilder(Buffer.from(log, 'utf-8'), { name: `log-${interaction.channel.name}.txt` });
+        const attachment = new AttachmentBuilder(Buffer.from(logText, 'utf-8'), { name: `ticket-${interaction.channel.name}.txt` });
         const logChannel = client.channels.cache.get(CANAL_LOGS); 
         
         if (logChannel) {
             await logChannel.send({ 
-                content: `🔒 **Ticket Cerrado:** \`${interaction.channel.name}\` por ${interaction.user}`, 
+                content: `🔒 **Ticket Cerrado:** \`${interaction.channel.name}\` | Cerrado por: ${interaction.user}`, 
                 files: [attachment] 
             });
         }
