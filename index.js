@@ -18,7 +18,7 @@ const IMAGEN_EMBED = 'https://media.discordapp.net/attachments/14614849006361642
 
 // --- NUEVOS AJUSTES (Bienvenida y Verificación) ---
 const CANAL_BIENVENIDA = '1460923924249448448'; 
-const ROL_USUARIO = '1460923741541371914'; // ID Actualizada por el usuario
+const ROL_USUARIO = '1460923741541371914'; // ID Actualizada por el usuario para rol de Minecraft
 
 const client = new Client({
     intents: [GatewayIntentBits.Guilds, GatewayIntentBits.GuildMembers, GatewayIntentBits.GuildMessages, GatewayIntentBits.MessageContent]
@@ -69,13 +69,14 @@ client.on('interactionCreate', async interaction => {
             if (!esStaff) return interaction.reply({ content: '❌ No tienes permiso.', ephemeral: true });
 
             const embedVerif = new EmbedBuilder()
-                .setTitle('🛡️ Centro de Verificación')
-                .setDescription('Para acceder al resto del servidor y demostrar que no eres un bot, presiona el botón de abajo.')
+                .setTitle('🛡️ VERIFICACIÓN DE SHOWMC NETWORK')
+                .setDescription('¡Bienvenido a la comunidad oficial de **ShowMC**! 🎮\n\nSomos un servidor de Minecraft dedicado a brindarte la mejor experiencia de juego. Para evitar bots y acceder a todos los canales, sorteos y novedades, por favor verifícate presionando el botón de abajo.')
+                .addFields({ name: '¿Cómo entrar al server?', value: 'Una vez verificado, podrás ver la IP y las normas necesarias para jugar con nosotros.' })
                 .setColor(0x00fbff)
-                .setFooter({ text: 'ShowMC Network' });
+                .setFooter({ text: 'ShowMC Network | Seguridad Automática' });
 
             const btnVerif = new ActionRowBuilder().addComponents(
-                new ButtonBuilder().setCustomId('verificar_usuario').setLabel('Verificarse').setStyle(ButtonStyle.Success).setEmoji('✅')
+                new ButtonBuilder().setCustomId('verificar_usuario').setLabel('Completar Verificación').setStyle(ButtonStyle.Success).setEmoji('✅')
             );
 
             await interaction.channel.send({ embeds: [embedVerif], components: [btnVerif] });
@@ -118,7 +119,7 @@ client.on('interactionCreate', async interaction => {
                         { label: 'Soporte General', value: 'soporte', emoji: '❓' },
                         { label: 'Tienda', value: 'tienda', emoji: '🛒' },
                         { label: 'Unregister', value: 'unregister', emoji: '👤' },
-                       { label: 'Apelaciones', value: 'apelaciones', emoji: '⚖️' },
+                        { label: 'Apelaciones', value: 'apelaciones', emoji: '⚖️' },
                         { label: 'Media Team', value: 'mediateam', emoji: '🎥' },
                         { label: 'Reportes Jugadores', value: 'reportes_jugadores', emoji: '🚫' },
                         { label: 'Reportes Staff', value: 'reportes_staff', emoji: '👮' },
@@ -144,7 +145,7 @@ client.on('interactionCreate', async interaction => {
         if (!rol) return interaction.reply({ content: '❌ Error: El rol de verificación no existe.', ephemeral: true });
         
         await interaction.member.roles.add(rol);
-        return interaction.reply({ content: '✅ Te has verificado correctamente. ¡Bienvenido!', ephemeral: true });
+        return interaction.reply({ content: '✅ Te has verificado correctamente. ¡Disfruta de ShowMC!', ephemeral: true });
     }
 
     // --- MANEJO DE TICKETS ---
@@ -218,3 +219,5 @@ client.on('interactionCreate', async interaction => {
         setTimeout(() => interaction.channel.delete().catch(() => {}), 3000);
     }
 });
+
+client.login(TOKEN);
